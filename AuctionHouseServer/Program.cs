@@ -1,40 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AuctionHouseServer
 {
     class Program
     {
+        public static AuctionHandler auction = new AuctionHandler();
         static void Main(string[] args)
         {
-            TcpListener listener = new TcpListener(IPAddress.Any, 20001);
-            TcpClient client;
+            TcpListener listener = new TcpListener(IPAddress.Any, 2001);
+            Socket clientSocket;
             listener.Start();
             Console.WriteLine("Server ready!");
-            try
+            Thread auctionThread = new Thread(auction.StartAuction);
+            auctionThread.Start();
+            while (true)
             {
-                while (true)
-                {
-                    client = listener.AcceptTcpClient();
-                    Console.WriteLine($">> Client has connected!");
-                    ClientHandler cHandler = new ClientHandler();
-                    cHandler.StartClient(client);
-                }
-                
-            }catch(Exception e)
-            {
-                Console.WriteLine(e.Message);
+                clientSocket = listener.AcceptSocket();
+                Console.WriteLine("Connection incoming...");
+                ClientHandler clientHandler = new ClientHandler(clientSocket,auction);
+                Thread clientThread = new Thread(clientHandler.StartClient);
+                clientThread.Start();
             }
-                listener.Stop();
-                Console.WriteLine(">> Exit");
-                Console.ReadLine();
+
         }
     }
 }

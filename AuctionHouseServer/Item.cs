@@ -10,22 +10,12 @@ namespace AuctionHouseServer
     {
 
         public string Name { get; set; }
-        public int Price { get; set; }
+        public double Price { get; set; }
+        public double Bid { get; set; }
 
-        public int GetPrice()
+        public override string ToString()
         {
-            return Price;
-        }
-
-        public bool UpdatePrice(int newP)
-        {
-            bool priceChanged = false;
-            if (newP > Price)
-            {
-                Price = newP;
-                priceChanged = true;
-            }
-            return priceChanged;
+            return string.Format("Name: {0}, Price: {1}, Bid: {2}", Name, Price, Bid);
         }
     }
 

@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuctionHandler.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="ClientHandler.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="Program.cs" />

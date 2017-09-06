@@ -7,60 +7,66 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace AuctionHouseServer
 {
     class ClientHandler
     {
-        Dictionary<string, string> participants = new Dictionary<string, string>();
+        List<Client> subscribedClients = new List<Client>();
+        public readonly AuctionHandler CurrentAuction;
+        public readonly Socket client;
+        public bool isRunning;
 
-        private TcpClient _client;
-        public void StartClient(TcpClient client)
+        public ClientHandler(Socket client, AuctionHandler auction)
         {
-            _client = client;
-            Thread clientThread = new Thread(Communication);
-            clientThread.Start();
+            client = this.client;
+            auction = CurrentAuction;
+            CurrentAuction.BroadcastEvent += CurrentAuctionEventBroadcaster;
         }
-        public void Communication()
+
+        public void CurrentAuctionEventBroadcaster(string message)
         {
-            bool isConn = true;
-            NetworkStream ns = _client.GetStream();
+            NetworkStream ns = new NetworkStream(client);
+            StreamWriter sw = new StreamWriter(ns);
+            sw.WriteLine(message);
+            sw.Flush();
+        }
+
+        public void StartClient()
+        {
+            NetworkStream ns = new NetworkStream(client);
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
-            sw.WriteLine("Please insert your name...");
+            sw.WriteLine("Please type in your username");
             sw.Flush();
-            string message;
-            try
+            var clientobj = new Client(sr.ReadLine(), Convert.ToString(client.RemoteEndPoint));
+            subscribedClients.Add(clientobj);
+            sw.WriteLine("Welcome to the auction, " + clientobj.Name +
+                         "\n The item that is currently on the auction is : " +
+                         CurrentAuction.itemForAuction.ToString() +
+                         "\n Please type down the amount of money you want to bid for the item and press ENTER.");
+                sw.Flush();
+            isRunning = true;
+            while (isRunning)
             {
-
-                while (isConn)
+                try
                 {
-                    message = sr.ReadLine();
-                    if (message != null)
-                    {
-                        participants.Add(message, ((IPEndPoint) _client.Client.RemoteEndPoint).Address.ToString());
-                        sw.WriteLine("Name valid");
-                        sw.Flush();
-                        foreach (var x in participants)
-                        {
-                            Console.WriteLine(x.ToString());
-                        }
-                    }
-                    else
-                    {
-                        sw.WriteLine("Please enter a valid name...");
-                        sw.Flush();
-                    }
-
+                    //make one option for closing exiting the bid
+                    double bidfromstream = Convert.ToDouble(sr.ReadLine());
+                    CurrentAuction.PlaceBid(clientobj, bidfromstream);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    isRunning = false;
                 }
             }
-            catch (Exception)
-            {
-                Console.WriteLine("problem");
-            }
+            client.Close();
             ns.Close();
-            sr.Close();
             sw.Close();
+            sr.Close();
+
         }
     }
 }
