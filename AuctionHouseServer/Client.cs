@@ -7,8 +7,8 @@
 
         public Client(string name, string ip)
         {
-            name = Name;
-            ip = Ip;
+            Name = name;
+            Ip = ip;
         }
     }
 }

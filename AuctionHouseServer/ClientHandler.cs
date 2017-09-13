@@ -20,8 +20,8 @@ namespace AuctionHouseServer
 
         public ClientHandler(Socket client, AuctionHandler auction)
         {
-            client = this.client;
-            auction = CurrentAuction;
+            this.client = client;
+            CurrentAuction = auction;
             CurrentAuction.BroadcastEvent += CurrentAuctionEventBroadcaster;
         }
 
@@ -40,12 +40,10 @@ namespace AuctionHouseServer
             StreamWriter sw = new StreamWriter(ns);
             sw.WriteLine("Please type in your username");
             sw.Flush();
-            var clientobj = new Client(sr.ReadLine(), Convert.ToString(client.RemoteEndPoint));
+            string clientName = sr.ReadLine();
+            var clientobj = new Client(clientName, Convert.ToString(client.RemoteEndPoint));
             subscribedClients.Add(clientobj);
-            sw.WriteLine("Welcome to the auction, " + clientobj.Name +
-                         "\n The item that is currently on the auction is : " +
-                         CurrentAuction.itemForAuction.ToString() +
-                         "\n Please type down the amount of money you want to bid for the item and press ENTER.");
+            sw.WriteLine("Welcome to the auction, " + clientName + " The item that is currently on the auction is : " + CurrentAuction.itemForAuction.ToString() + " Please type down the amount of money you want to bid for the item and press ENTER.");
                 sw.Flush();
             isRunning = true;
             while (isRunning)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AuctionHouseServer
@@ -15,41 +16,39 @@ namespace AuctionHouseServer
         public readonly object gravel = new object();
         public readonly object itemToLock = new object();
         public bool isRunning;
-        public int countdown;
+        //public int countdown;
         public Item itemForAuction = new Item{Name="Picasso Painting",Price = 10000, Bid = 0};
 
         public void StartAuction()
         {
             isRunning = true;
-            ResetTimer();
             if (BroadcastEvent != null)
             {
                 BroadcastEvent("The item in the auction is: " + itemForAuction.ToString());
                 while (isRunning)
                 {
-                    countdown--;
                     string currentBid = Convert.ToString(itemForAuction.Bid);
-                    if (countdown == 11)
-                    {
+                    Thread.Sleep(1100);
+                    
                         if (BroadcastEvent != null)
                         {
                             BroadcastEvent("Going once for: " + currentBid);
 
                         }
-                        else if (countdown == 3)
+                      Thread.Sleep(800);
                         {
                             if (BroadcastEvent != null)
                             {
                                 BroadcastEvent("Going twice for: " + currentBid);
                             }
                         }
-                        else if (countdown == 0)
+                       Thread.Sleep(300);
                         {
                             if (BroadcastEvent != null)
                                 BroadcastEvent("Item sold for: " + currentBid + "to the client: " );
                             isRunning = false;
                         }
-                    }
+                    
                 }
             }
         }
@@ -57,7 +56,8 @@ namespace AuctionHouseServer
         {
             lock (gravel)
             {
-                countdown = 11;
+                Thread t = new Thread(StartAuction);
+                t.Start();
             }
         }
 
